@@ -7,6 +7,7 @@ import { CollectionTypes } from './collectionHandlers'
 
 const isRefSymbol = Symbol()
 
+// 一个Ref对象拥有一个Symbol标示，同时，它有value字段，指向原生的
 export interface Ref<T = any> {
   // This field is necessary to allow TS to differentiate a Ref from a plain
   // object that happens to have a "value" field.
@@ -88,8 +89,8 @@ type UnwrapArray<T> = { [P in keyof T]: UnwrapRef<T[P]> }
 export type UnwrapRef<T> = {
   cRef: T extends ComputedRef<infer V> ? UnwrapRef<V> : T
   ref: T extends Ref<infer V> ? UnwrapRef<V> : T
-  array: T extends Array<infer V> ? Array<UnwrapRef<V>> & UnwrapArray<T> : T
-  object: { [K in keyof T]: UnwrapRef<T[K]> }
+  array: T extends Array<infer V> ? Array<UnwrapRef<V>> & UnwrapArray<T> : T // 如果是数组，那么它的每一项都应该是UnwraoRef
+  object: { [K in keyof T]: UnwrapRef<T[K]> } // 如果是对象，那么它的字段值应该也是UnwrapRef
 }[T extends ComputedRef<any>
   ? 'cRef'
   : T extends Ref

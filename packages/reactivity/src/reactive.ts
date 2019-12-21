@@ -12,6 +12,8 @@ import { UnwrapRef, Ref } from './ref'
 import { makeMap } from '@vue/shared'
 
 // WeakMaps that store {raw <-> observed} pairs.
+// WeakMap 相对 Map 不同的是，WeakMap是了弱引用，如果WeakMap的某个key值在内存中被销毁了，则WeakMap中也找不到相关的键值
+// 用于记录映射
 const rawToReactive = new WeakMap<any, any>()
 const reactiveToRaw = new WeakMap<any, any>()
 const rawToReadonly = new WeakMap<any, any>()
@@ -19,14 +21,20 @@ const readonlyToRaw = new WeakMap<any, any>()
 
 // WeakSets for values that are marked readonly or non-reactive during
 // observable creation.
+
+// 用两个set记录readonly和没有Reactive的值
 const readonlyValues = new WeakSet<any>()
 const nonReactiveValues = new WeakSet<any>()
 
 const collectionTypes = new Set<Function>([Set, Map, WeakMap, WeakSet])
+
+// 一个闭包，返回一个类型判断
 const isObservableType = /*#__PURE__*/ makeMap(
   'Object,Array,Map,Set,WeakMap,WeakSet'
 )
 
+// 满足下述条件的对象才会被observe，
+// 1. 不是_Vue对象， 2. 不是虚拟DOM  3. 在观测列表 4. 不在不观测列表
 const canObserve = (value: any): boolean => {
   return (
     !value._isVue &&
