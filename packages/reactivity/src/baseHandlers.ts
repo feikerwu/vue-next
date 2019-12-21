@@ -26,6 +26,7 @@ function createGetter(isReadonly: boolean, shallow = false) {
       return res.value
     }
     track(target, TrackOpTypes.GET, key)
+    // 对子对象循环
     return isObject(res)
       ? isReadonly
         ? // need to lazy access readonly and reactive here to avoid

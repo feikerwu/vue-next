@@ -1,3 +1,5 @@
+// 这个文件的目的是为了遍历reactive的对象，包裹一层
+
 import { track, trigger } from './effect'
 import { TrackOpTypes, TriggerOpTypes } from './operations'
 import { isObject } from '@vue/shared'

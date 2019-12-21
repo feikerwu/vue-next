@@ -114,6 +114,7 @@ function createReactiveObject(
   }
   // target already has corresponding Proxy
   let observed = toProxy.get(target)
+  // void 0 === undefiened  void 0 可以压缩字节数
   if (observed !== void 0) {
     return observed
   }
@@ -125,10 +126,13 @@ function createReactiveObject(
   if (!canObserve(target)) {
     return target
   }
+  // 如果是 weakmap，weakset，map， set 类型，就用collectionHandlers,否则用collectionHandlers
   const handlers = collectionTypes.has(target.constructor)
     ? collectionHandlers
     : baseHandlers
   observed = new Proxy(target, handlers)
+
+  // 记录相关的数据，原生以及被观测后的对象
   toProxy.set(target, observed)
   toRaw.set(observed, target)
   return observed

@@ -29,5 +29,4 @@
     "packages/*/src",
     "packages/*/__tests__",
     "test-dts"
-  ]
 }
