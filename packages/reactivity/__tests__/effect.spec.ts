@@ -37,6 +37,22 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe(21)
   })
 
+  // 经过测试，的确会执行多次，如果一个函数依赖了多个属性，那么每次属性修改都会执行多次
+  it('should run multiple times when observe multiple properties', () => {
+    let dummy
+    const counter = reactive({ num1: 0, num2: 0 })
+    const fnSpy = jest.fn(() => {
+      dummy = counter.num1 + counter.num2 + counter.num2
+    })
+    effect(fnSpy)
+    // effect(() => (dummy = counter.num1 + counter.num1 + counter.num2))
+    expect(fnSpy).toHaveBeenCalledTimes(1)
+    expect(dummy).toBe(0)
+    counter.num1 = counter.num2 = 7
+    expect(fnSpy).toHaveBeenCalledTimes(3)
+    expect(dummy).toBe(21)
+  })
+
   it('should handle multiple effects', () => {
     let dummy1, dummy2
     const counter = reactive({ num: 0 })

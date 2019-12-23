@@ -5,10 +5,11 @@ import { EMPTY_OBJ, extend, isArray } from '@vue/shared'
 // Conceptually, it's easier to think of a dependency as a Dep class
 // which maintains a Set of subscribers, but we simply store them as
 // raw Sets to reduce memory overhead.
+
+// 维系这样的target => key => DepSet一个关系
 type Dep = Set<ReactiveEffect>
 type KeyToDepMap = Map<any, Dep>
 const targetMap = new WeakMap<any, KeyToDepMap>()
-// target => key => DepSet
 
 export interface ReactiveEffect<T = any> {
   (): T
@@ -159,6 +160,7 @@ export function track(target: object, type: TrackOpTypes, key: unknown) {
   }
 }
 
+// 当对象的数据发生变化时，触发依赖的执行
 export function trigger(
   target: object,
   type: TriggerOpTypes,
@@ -183,11 +185,13 @@ export function trigger(
       addRunners(effects, computedRunners, depsMap.get(key))
     }
     // also run for iteration key on ADD | DELETE
+    // 如果是添加或者删除，说明其上级对象也发生了变化，这里通过一个iteration字段来触发依赖变化
     if (type === TriggerOpTypes.ADD || type === TriggerOpTypes.DELETE) {
       const iterationKey = isArray(target) ? 'length' : ITERATE_KEY
       addRunners(effects, computedRunners, depsMap.get(iterationKey))
     }
   }
+  // 执行
   const run = (effect: ReactiveEffect) => {
     scheduleRun(effect, target, type, key, extraInfo)
   }
@@ -197,6 +201,7 @@ export function trigger(
   effects.forEach(run)
 }
 
+// 将相关依赖根据computed配置加入不同的容器
 function addRunners(
   effects: Set<ReactiveEffect>,
   computedRunners: Set<ReactiveEffect>,
@@ -213,6 +218,7 @@ function addRunners(
   }
 }
 
+// 选取合适的策略来执行effect
 function scheduleRun(
   effect: ReactiveEffect,
   target: object,
@@ -229,6 +235,7 @@ function scheduleRun(
     }
     effect.options.onTrigger(extraInfo ? extend(event, extraInfo) : event)
   }
+  // 通过是否在effect中的option中传参来执行
   if (effect.options.scheduler !== void 0) {
     effect.options.scheduler(effect)
   } else {
