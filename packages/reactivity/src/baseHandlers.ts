@@ -25,6 +25,8 @@ function createGetter(isReadonly: boolean, shallow = false) {
     if (isRef(res)) {
       return res.value
     }
+
+    // 收集依赖，什么时候产生依赖
     track(target, TrackOpTypes.GET, key)
     // 对子对象循环
     return isObject(res)
@@ -45,7 +47,9 @@ function set(
 ): boolean {
   value = toRaw(value)
   const oldValue = (target as any)[key]
+  // old 是响应式数据，而新的不是
   if (isRef(oldValue) && !isRef(value)) {
+    // 只是换值？如果newValue是一个对象，那么新数据的响应式信息呢
     oldValue.value = value
     return true
   }

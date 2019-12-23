@@ -8,6 +8,7 @@ import { EMPTY_OBJ, extend, isArray } from '@vue/shared'
 type Dep = Set<ReactiveEffect>
 type KeyToDepMap = Map<any, Dep>
 const targetMap = new WeakMap<any, KeyToDepMap>()
+// target => key => DepSet
 
 export interface ReactiveEffect<T = any> {
   (): T
@@ -56,7 +57,10 @@ export function effect<T = any>(
   if (isEffect(fn)) {
     fn = fn.raw
   }
+  // 创建一个effect
   const effect = createReactiveEffect(fn, options)
+
+  // 如果不是lazy，则立马调用
   if (!options.lazy) {
     effect()
   }
@@ -73,11 +77,13 @@ export function stop(effect: ReactiveEffect) {
   }
 }
 
+// 工厂模式，创建一个effect
 function createReactiveEffect<T = any>(
   fn: () => T,
   options: ReactiveEffectOptions
 ): ReactiveEffect<T> {
   const effect = function reactiveEffect(...args: unknown[]): unknown {
+    // run（effect）一个闭包操作
     return run(effect, fn, args)
   } as ReactiveEffect
   effect._isEffect = true
@@ -88,6 +94,7 @@ function createReactiveEffect<T = any>(
   return effect
 }
 
+// 保证activeEffect是最新的effect
 function run(effect: ReactiveEffect, fn: Function, args: unknown[]): unknown {
   if (!effect.active) {
     return fn(...args)
@@ -139,8 +146,9 @@ export function track(target: object, type: TrackOpTypes, key: unknown) {
   }
   if (!dep.has(activeEffect)) {
     dep.add(activeEffect)
-    activeEffect.deps.push(dep)
+    activeEffect.deps.push(dep) //存疑，为什么要在原来的activeEffect上推回dep，存储依赖了哪些字段？
     if (__DEV__ && activeEffect.options.onTrack) {
+      // 调试用到
       activeEffect.options.onTrack({
         effect: activeEffect,
         target,
